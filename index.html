@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Aero Strike: 2D Jetpack Combat - A fast-paced multiplayer combat game with jetpacks, physics chaos, and competitive gameplay." />
+    <title>Aero Strike | 2D Jetpack Combat</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🚀</text></svg>" />
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-screen__logo">AERO STRIKE</div>
+      <div class="loading-screen__bar">
+        <div class="loading-screen__bar-fill"></div>
+      </div>
+      <div class="loading-screen__text">Initializing Systems...</div>
+    </div>
+
+    <!-- Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main App -->
+    <div id="app">
+      <!-- Sidebar -->
+      <aside class="app-sidebar" id="sidebar">
+        <div class="logo">
+          <div class="logo__img">🚀</div>
+          <div>
+            <div class="logo__text">AERO STRIKE</div>
+            <div class="logo__sub">2D Jetpack Combat</div>
+          </div>
+        </div>
+        <nav id="mainNav"></nav>
+        <!-- Player Card in Sidebar -->
+        <div id="sidebarPlayerCard" style="margin-top:auto; padding: 16px;"></div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="app-main">
+        <!-- Header -->
+        <header class="app-header" id="appHeader">
+          <div class="flex items-center gap-md">
+            <h3 id="screenTitle" class="text-cyan" style="font-size:1rem;">MAIN LOBBY</h3>
+          </div>
+          <div class="flex items-center gap-md">
+            <div class="currency currency--gold">
+              <span class="currency__icon">🪙</span>
+              <span id="goldCount">12,450</span>
+            </div>
+            <div class="currency currency--gem">
+              <span class="currency__icon">💎</span>
+              <span id="gemCount">1,290</span>
+            </div>
+            <div class="badge badge--level" id="playerLevel">LV 28</div>
+          </div>
+        </header>
+
+        <!-- Screen Container -->
+        <div class="app-content" id="screenContainer"></div>
+      </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal" id="modalContent"></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
