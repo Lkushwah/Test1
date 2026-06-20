@@ -169,7 +169,7 @@ describe('HUD Screen — initHUD()', () => {
     // Advance enough to add many entries
     vi.advanceTimersByTime(3500 * 8);
     // The removal uses setTimeout internally; run those too
-    vi.runAllTimers();
+    vi.advanceTimersByTime(500);
     expect(killFeed.children.length).toBeLessThanOrEqual(4);
   });
 

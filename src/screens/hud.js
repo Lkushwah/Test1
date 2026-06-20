@@ -239,12 +239,16 @@ export function initHUD() {
     killFeedEl.appendChild(entry);
 
     // Remove old entries to keep max 4
-    while (killFeedEl.children.length > 4) {
-      const oldest = killFeedEl.children[0];
-      oldest.style.opacity = '0';
-      oldest.style.transform = 'translateX(50px)';
-      oldest.style.transition = 'all 0.3s ease';
-      setTimeout(() => oldest.remove(), 300);
+    const activeEntries = Array.from(killFeedEl.children).filter(el => !el.classList.contains('killing'));
+    if (activeEntries.length > 4) {
+      for (let i = 0; i < activeEntries.length - 4; i++) {
+        const oldest = activeEntries[i];
+        oldest.classList.add('killing');
+        oldest.style.opacity = '0';
+        oldest.style.transform = 'translateX(50px)';
+        oldest.style.transition = 'all 0.3s ease';
+        setTimeout(() => oldest.remove(), 300);
+      }
     }
   }, 3500);
 
@@ -275,6 +279,7 @@ export function initHUD() {
   }, 1000);
 
   // ---- Ability Cooldown Ticks ----
+  const abilityIntervals = [];
   const abilities = document.querySelectorAll('.ability-icon');
   abilities.forEach(ab => {
     let cd = parseInt(ab.dataset.cooldown) || 0;
@@ -310,6 +315,7 @@ export function initHUD() {
         }
       }
     }, 1000);
+    abilityIntervals.push(abInterval);
   });
 
   // Store cleanup references on the container
@@ -320,6 +326,7 @@ export function initHUD() {
       clearInterval(timerInterval);
       clearInterval(killInterval);
       clearInterval(dotsInterval);
+      abilityIntervals.forEach(clearInterval);
     };
   }
 }
