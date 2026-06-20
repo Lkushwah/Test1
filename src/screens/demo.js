@@ -153,12 +153,13 @@ class Particle {
 }
 
 class Bullet {
-  constructor(x, y, dir, isEnemy = false, type = 'normal') {
+  constructor(x, y, dir, isEnemy = false, type = 'normal', ownerId = 1) {
     this.x = x;
     this.y = y;
     this.dir = dir;
     this.type = type;
     this.isEnemy = isEnemy;
+    this.ownerId = ownerId;
     this.life = 60;
     this.width = 12;
     this.height = 3;
@@ -187,25 +188,10 @@ class Bullet {
       this.vy = (type === 'smg') ? (Math.random() - 0.5) * 1.5 : 0;
     }
   }
-  createPlayer(id, x, y, classId) {
-    return {
-      id, x, y, width: 24, height: 32, vx: 0, vy: 0, dir: id === 1 ? 1 : -1,
-      hp: classId === 'heavy' ? 8 : (classId === 'scout' ? 3 : 5),
-      maxHp: classId === 'heavy' ? 8 : (classId === 'scout' ? 3 : 5),
-      fuel: FUEL_MAX, kills: 0, onGround: false, jetpacking: false,
-      shootCooldown: 0, hitFlash: 0, invincible: 0, classId,
-      baseCooldown: classId === 'scout' ? 30 : (classId === 'heavy' ? 25 : (classId === 'medic' ? 8 : 12)),
-      grenades: 3, overdrive: 0, dashCooldown: 0, isDashing: 0, wallSliding: false
-    };
-  }
 
   update() {
     this.x += this.vx;
     this.y += this.vy;
-    if (this.x < 0) { this.x = 0; this.patrolDir = 1; }
-    let mWidth = platforms[0] ? platforms[0].width : 3000;
-    if (this.x + this.width > mWidth) { this.x = mWidth - this.width; this.patrolDir = -1; }
-
     this.life--;
     return this.life > 0;
   }
@@ -263,12 +249,13 @@ class Pickup {
 }
 
 class Grenade {
-  constructor(x, y, dir) {
+  constructor(x, y, dir, ownerId = 1) {
     this.x = x; this.y = y;
     this.vx = dir * 6; this.vy = -4;
     this.width = 8; this.height = 8;
     this.timer = 120;
     this.exploded = false;
+    this.ownerId = ownerId;
   }
   update(platforms, particles) {
     this.timer--;
@@ -660,7 +647,7 @@ class Game {
 
       // Grenade
       if (kGrenade && p.grenades > 0 && p.shootCooldown <= 0) {
-        this.grenadesList.push(new Grenade(p.dir === 1 ? p.x + p.width : p.x, p.y + p.height/2, p.dir));
+        this.grenadesList.push(new Grenade(p.dir === 1 ? p.x + p.width : p.x, p.y + p.height/2, p.dir, p.id));
         p.grenades--; p.shootCooldown = 30;
       }
 
@@ -677,13 +664,13 @@ class Game {
         if (p.classId === 'medic') wType = 'smg';
 
         if (wType === 'shotgun') {
-          for(let i=0; i<4; i++) this.bullets.push(new Bullet(bx, p.y + p.height/2 - 2, p.dir, false, wType));
+          for(let i=0; i<4; i++) this.bullets.push(new Bullet(bx, p.y + p.height/2 - 2, p.dir, false, wType, p.id));
           this.screenShake = 4;
         } else if (wType === 'rocket') {
-          this.bullets.push(new Bullet(bx, p.y + p.height/2 - 4, p.dir, false, wType));
+          this.bullets.push(new Bullet(bx, p.y + p.height/2 - 4, p.dir, false, wType, p.id));
           this.screenShake = 6;
         } else {
-          this.bullets.push(new Bullet(bx, p.y + p.height/2 - 2, p.dir, false, wType));
+          this.bullets.push(new Bullet(bx, p.y + p.height/2 - 2, p.dir, false, wType, p.id));
           if (wType === 'sniper') this.screenShake = 3;
         }
         p.shootCooldown = p.overdrive > 0 ? Math.floor(p.baseCooldown/2) : p.baseCooldown;
@@ -707,6 +694,7 @@ class Game {
 
       // Bullet-enemy collision
       if (!b.isEnemy) {
+        const shooter = this.players.find(pl => pl.id === b.ownerId) || this.players[0];
         let hit = false;
         for (const enemy of this.enemies) {
           if (!enemy.alive) continue;
@@ -722,7 +710,7 @@ class Game {
                 const dy = (e.y + e.height/2) - b.y;
                 if (Math.sqrt(dx*dx + dy*dy) < 80) {
                   e.takeDamage(this.particles); e.takeDamage(this.particles); // double damage
-                  if (!e.alive) { p.kills++; this.score += 150; }
+                  if (!e.alive) { shooter.kills++; this.score += 150; }
                 }
               }
               // Explosion particles
@@ -734,7 +722,7 @@ class Game {
               if (b.type === 'sniper') enemy.takeDamage(this.particles); // Sniper does double damage
               
               if (!enemy.alive) {
-                p.kills++;
+                shooter.kills++;
                 this.score += 100;
                 // Drop pickup
                 if (Math.random() < 0.35) {
@@ -786,13 +774,14 @@ class Game {
       const alive = g.update(this.platforms, this.particles);
       if (!alive && g.exploded) {
         this.screenShake = 15;
+        const shooter = this.players.find(pl => pl.id === g.ownerId) || this.players[0];
         for (const enemy of this.enemies) {
           if (!enemy.alive) continue;
           const dx = (enemy.x + enemy.width/2) - g.x;
           const dy = (enemy.y + enemy.height/2) - g.y;
           if (Math.sqrt(dx*dx + dy*dy) < 100) {
             enemy.takeDamage(this.particles); enemy.takeDamage(this.particles);
-            if (!enemy.alive) { p.kills++; this.score += 100; }
+            if (!enemy.alive) { shooter.kills++; this.score += 100; }
           }
         }
       }
@@ -1392,5 +1381,6 @@ export function destroyDemo() {
   if (gameInstance) {
     gameInstance.stop();
     gameInstance = null;
+    window.gameInstance = null;
   }
 }
