@@ -128,6 +128,72 @@ describe('Lobby Screen', () => {
     });
   });
 
+  it('renders tab content container', () => {
+    expect(document.getElementById('lobbyTabContent')).toBeTruthy();
+  });
+
+  it('injects initial inventory content on init', () => {
+    initLobby();
+    const tabContent = document.getElementById('lobbyTabContent');
+    expect(tabContent.querySelector('.btn-inventory-equip')).toBeTruthy();
+  });
+
+  it('can equip inventory items and trigger toast notifications', () => {
+    initLobby();
+    const btn = document.querySelector('.btn-inventory-equip');
+    expect(btn.textContent).toBe('EQUIPPED');
+    btn.click();
+    expect(btn.textContent).toBe('EQUIP');
+  });
+
+  it('can claim event rewards and update gems', () => {
+    const goldCount = document.createElement('span');
+    goldCount.id = 'goldCount';
+    goldCount.textContent = '1,000';
+    document.body.appendChild(goldCount);
+    
+    const gemCount = document.createElement('span');
+    gemCount.id = 'gemCount';
+    gemCount.textContent = '500';
+    document.body.appendChild(gemCount);
+
+    initLobby();
+    
+    const tabs = [...document.querySelectorAll('#lobbyTabs .tab-bar__item')];
+    tabs[2].click();
+
+    const claimBtn = document.querySelector('.btn-claim-reward');
+    claimBtn.click();
+
+    expect(gemCount.textContent).toBe('600');
+    expect(claimBtn.textContent).toBe('CLAIMED');
+    expect(claimBtn.disabled).toBe(true);
+
+    goldCount.remove();
+    gemCount.remove();
+  });
+
+  it('can add friends and invite/spectate them', () => {
+    initLobby();
+    
+    const tabs = [...document.querySelectorAll('#lobbyTabs .tab-bar__item')];
+    tabs[3].click();
+
+    const input = document.getElementById('addFriendInput');
+    const addBtn = document.getElementById('addFriendBtn');
+    
+    input.value = 'StrikeForce-99';
+    addBtn.click();
+    
+    const list = document.getElementById('friendsTabList');
+    expect(list.textContent).toContain('StrikeForce-99');
+    
+    const inviteBtn = document.querySelector('.btn-friend-action[data-action="invite"]');
+    inviteBtn.click();
+    expect(inviteBtn.textContent).toBe('SENT');
+    expect(inviteBtn.disabled).toBe(true);
+  });
+
   it('countdown updates after 1 second', () => {
     initLobby();
     const segs = document.querySelectorAll('.countdown__segment');
